@@ -67,39 +67,20 @@ class Game {
         for (let row = 0; row < this.state.length; row++) {
             for (let col = 0; col < this.state[row].length; col++) {
                 if (this.state[row][col] === player) {
-                    // Player can move diagonally by n spaces if the other player is diagonal and there is a free space
-                    // Eg if player A is at 1,1 and player B is at 2,2 and 3,3
-                    // then player A can move to 4,4 and player B's peices are removed.
-
-                    // North East
-                    if (row - 1 >= 0 && col + 1 < this.state[row].length) { // Check that position is in bounds
-                        if (this.state[row + 1][col - 1] != player && this.state[row + 1][col - 1] != 0
-                            && this.state[row + 2][col - 2] === 0) {
-                                moves.push(new Move([row, col], [row + 2][col - 2]));
-                        }
-                    }
-
-                    // North West
-                    if (row - 1 >= 0 && col - 1 >= 0) { // Check that position is in bounds
-                        if (this.state[row - 1][col - 1] != player && this.state[row - 1][col - 1] != 0 
-                            && this.state[row - 2][col - 2] === 0) {
-                                moves.push(new Move([row, col], [row - 2, col - 2]));
-                        }
-
-
-                    // South East
-                    if (row + 1 < this.state.length && col + 1 < this.state[row].length) { // Check that position is in bounds
-                        if (this.state[row + 1][col + 1] != player && this.state[row + 1][col + 1] != 0
-                            && this.state[row + 2][col + 2] === 0) {
-                                moves.push(new Move([row, col], [row + 2, col + 2]));
-                            }
-                    }
-
-                    // South West
-                    if (row + 1 < this.state.length && col - 1 >= 0) { // Check that position is in bounds
-                        if (this.state[row - 1][col + 1] != player && this.state[row - 1][col + 1] != 0 
-                            && this.state[row - 2][col + 2] === 0) {
-                                moves.push(new Move([row, col], [row - 2, col + 2]));
+                    // Player can move diagonally forward one square.
+                    // Player can move diagonally forward n squares if there are opponent pieces in between.
+                    // Player can move diagonally one square in any direction if they reach the end of the board (king piece).
+                    // Player can move diagonally n squares in any direction if there are opponent pieces in between (king piece).
+                    
+                    let oldPos = [row, col];
+                    
+                    // Check if player can move diagonally forward one square.
+                    if (player === 1) {
+                        if (row < 6 && col < 6) {
+                            if (this.state[row + 1][col + 1] === 0) {
+                                let newPos = [row + 1, col + 1];
+                                let move = new Move(oldPos, newPos);
+                                moves.push(move);
                             }
                         }
                     }
