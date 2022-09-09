@@ -23,10 +23,10 @@ while (game.getWinner === 0 || game.getWinner === null) {
             console.log(move.toString());
 
             // TODO: This is temporary, remove this later
-            if (move.getHops) {
-                console.log('Forcing exit');
-                process.exit();
-            }
+            // if (move.getHops) {
+            //     console.log('Forcing exit');
+            //     process.exit();
+            // }
         }
     } else {
         console.log('No moves available');

@@ -68,6 +68,7 @@ class Game {
         let moves = [];
         let player = this.turn % 2 === 0 ? 1 : 2;
         for (let row = 0; row < this.state.length; row++) {
+            console.log(row);
             for (let col = 0; col < this.state[row].length; col++) {
                 if (this.state[row][col] === player) {
                     // Player can move diagonally forward one square.
