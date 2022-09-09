@@ -24,6 +24,7 @@ class Game {
             [2, 0, 2, 0, 2, 0, 2, 0]
         ];
         this.turn = 0;
+        this.lastMove = null;
     }
 
     get getId() {
@@ -61,6 +62,8 @@ class Game {
         }
     }
 
+    // TODO: Handle all possible directions
+    // TODO: Fix hop logic & handle multiple hops
     getMoves() {
         let moves = [];
         let player = this.turn % 2 === 0 ? 1 : 2;
@@ -76,9 +79,51 @@ class Game {
                     
                     // Check if player can move diagonally forward one square.
                     if (player === 1) {
+                        // south east
                         if (row < 6 && col < 6) {
                             if (this.state[row + 1][col + 1] === 0) {
                                 let newPos = [row + 1, col + 1];
+                                let move = new Move(oldPos, newPos);
+                                moves.push(move);
+                            } else if (this.state[row + 1][col + 1] === 2) {    // south east hop
+                                let hops;
+                                for (let i = 2; i < 6; i++) {
+                                    if (row + i < 8 && col + i < 8) {
+                                        if (this.state[row + i][col + i] === 0) {
+                                            let newPos = [row + i, col + i];
+                                            let move = new Move(oldPos, newPos, hops);
+                                            moves.push(move);
+                                            break;
+                                        } else if (this.state[row + i][col + i] === 2) {
+                                            hops = [[row + i, col + i]];
+                                        } else {
+                                            break;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        // south west
+                        if (row < 6 && col > 1) {
+                            if (this.state[row + 1][col - 1] === 0) {
+                                let newPos = [row + 1, col - 1];
+                                let move = new Move(oldPos, newPos);
+                                moves.push(move);
+                            }
+                        }
+                    } else {
+                        // north west
+                        if (row > 1 && col > 1) {
+                            if (this.state[row - 1][col - 1] === 0) {
+                                let newPos = [row - 1, col - 1];
+                                let move = new Move(oldPos, newPos);
+                                moves.push(move);
+                            }
+                        }
+                        // north east
+                        if (row > 1 && col < 6) {
+                            if (this.state[row - 1][col + 1] === 0) {
+                                let newPos = [row - 1, col + 1];
                                 let move = new Move(oldPos, newPos);
                                 moves.push(move);
                             }
@@ -95,24 +140,30 @@ class Game {
     }
 
     isValidMove(move) {
-        return this.getMoves().includes(move);
+        for (let m of this.getMoves()) {
+            if (m.equals(move)) {
+                return true;
+            }
+        }
+        return false;
     }
 
 
     move(move) {
-        console.log(move);
-        if (this.turn % 2 === 0) {
-            if (this.getMoves().includes(move)) {
-                this.state[move.getNewPos[0]][move.getNewPos[1]] = player;
-                this.state[move.getOldPos[0]][move.getOldPos[1]] = 0;
-                if (move.getHop != null) {
-                    this.state[move.getHop[0]][move.getHop[1]] = 0;
+        let player = this.turn % 2 === 0 ? 1 : 2;
+        if (this.isValidMove(move)) {
+            this.state[move.getNewPos[0]][move.getNewPos[1]] = player;
+            this.state[move.getOldPos[0]][move.getOldPos[1]] = 0;
+            if (move.getHop) {
+                for (let hop of move.getHops) {
+                    this.state[hop[0]][hop[1]] = 0;
                 }
-                this.turn++;
-                return true;
-            } else {
-                return false;
             }
+            this.turn++;
+            this.lastMove = move;
+            return true;
+        } else {
+            return false;
         }
     }
 
@@ -127,24 +178,45 @@ class Game {
         return str;
     }
     
-    toPrettyString() {
+    handleBackground(black, pos) {
+        const gray_background = '\u001b[100m';
+        const gold_background = '\u001b[43m';
         let str = '';
+        if (this.lastMove !== null && this.lastMove.getNewPos[0] === pos[0] && this.lastMove.getNewPos[1] === pos[1]) {
+            str += gold_background;
+        } else if (black) {
+            str += gray_background;
+        }
+        return str;
+    }
+
+    toPrettyString() {
+        const red = '\u001b[31m';
+        const blue = '\u001b[34m';
+        const reset = '\u001b[0m';
+        const circle = '\u25cf';
+
+        let black = false;
+        let str = '';
+        
         for (let row = 0; row < this.state.length; row++) {
             for (let col = 0; col < this.state[row].length; col++) {
+                black = !black;
                 switch (this.state[row][col]) {
                     case 0:
-                        str += this.state[row][col] + ' ';
+                        str += this.handleBackground(black, [row, col]) + '   ' + reset;
                         break;
                     case 1:
-                        str += '\u001b[31m' + this.state[row][col] + ' \u001b[0m';
+                        str += red + this.handleBackground(black, [row, col]) + ' ' + circle + ' ' + reset;
                         break;
                     case 2:
-                        str += '\u001b[34m' + this.state[row][col] + ' \u001b[0m';
+                        str += blue + this.handleBackground(black, [row, col]) + ' ' + circle + ' ' + reset;
                         break;
                     default:
                         break;
                 }
             }
+            black = !black;
             str += '\n';
         }
         return str;

@@ -1,28 +1,56 @@
 import Game from './game.js';
 import Move from './move.js';
 
+import process from 'process';
+
 console.log('Creating new draughts game...');
-let g1 = new Game(1, 'player1', 'player2');
+let game = new Game(1, 'player1', 'player2');
+console.log('Game ID: ' + game.getId);
+console.log('Players: ' + game.getPlayers);
 
-console.log('Game ID: ' + g1.getId);
-console.log('Players: ' + g1.getPlayers);
+while (game.getWinner === 0 || game.getWinner === null) {
+    console.clear();
 
-console.log('Turn: ' + g1.getTurn);
-console.log('State:\n' + g1.toPrettyString());
-console.log('Moves:\n');
-for (let move of g1.getMoves()) {
-    console.log(move.toPrettyString());
+    console.log('Turn: ' + game.turn + (game.turn % 2 === 0 ? ' (red)' : ' (blue)'));
+    if (game.lastMove) console.log('Last move: Piece (' + game.lastMove.old_pos[0] + ', ' + game.lastMove.old_pos[1] + ') moved to (' + game.lastMove.new_pos[0] + ', ' + game.lastMove.new_pos[1] + ')');
+
+
+    console.log('\n\n' + game.toPrettyString());
+    
+    console.log('Moves:');
+    if (game.getMoves().length > 0) {
+        for (let move of game.getMoves()) {
+            console.log(move.toString());
+
+            // TODO: This is temporary, remove this later
+            if (move.getHops) {
+                console.log('Forcing exit');
+                process.exit();
+            }
+        }
+    } else {
+        console.log('No moves available');
+        break;
+    }
+    
+
+    // TODO: Make an algorithm to choose the best move (AI??)
+    // pick random move
+    let move = game.getMoves()[Math.floor(Math.random() * game.getMoves().length)];
+    console.log('\nMove: ' + move.toString());
+    console.log('Move is valid?');
+    console.log(game.isValidMove(move));
+    
+    console.log('\nMaking move...');
+    if (game.move(move)) {
+        console.log('Move successful!');
+    } else {
+        console.log('Move failed!');
+        break;
+    }
+
+    await new Promise(r => setTimeout(r, 100));
 }
 
-let m1 = new Move([2, 1], [3, 1], null);
-console.log('Move: ' + m1.toJSON());
-
-// currently this is not working
-console.log(g1.isValidMove(m1));
-
-console.log('\nMoving piece from (2, 1) to (3, 1)...');
-if (g1.move(m1)) {
-    console.log('Move successful!');
-} else {
-    console.log('Move failed!');
-}
+console.log('\nGame over!');
+console.log('Winner: ' + game.getWinner);
